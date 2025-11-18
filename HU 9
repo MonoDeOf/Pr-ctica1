@@ -1,0 +1,1150 @@
+{
+  "name": "Sistema Practicas - 9 HU Completo",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "solicitud-practica",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook_solicitud",
+      "name": "Webhook Solicitud",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "solicitud-practica"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "nombre_completo",
+              "value": "={{ $json.body.nombre_completo }}",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "correo",
+              "value": "={{ $json.body.correo }}",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "telefono",
+              "value": "={{ $json.body.telefono }}",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "carrera",
+              "value": "={{ $json.body.carrera }}",
+              "type": "string"
+            },
+            {
+              "id": "5",
+              "name": "periodo_practica",
+              "value": "={{ $json.body.periodo_practica }}",
+              "type": "string"
+            },
+            {
+              "id": "6",
+              "name": "nombre_institucion",
+              "value": "={{ $json.body.nombre_institucion }}",
+              "type": "string"
+            },
+            {
+              "id": "7",
+              "name": "correo_institucion",
+              "value": "={{ $json.body.correo_institucion }}",
+              "type": "string"
+            },
+            {
+              "id": "8",
+              "name": "contacto_institucion",
+              "value": "={{ $json.body.contacto_institucion }}",
+              "type": "string"
+            },
+            {
+              "id": "9",
+              "name": "telefono_institucion",
+              "value": "={{ $json.body.telefono_institucion }}",
+              "type": "string"
+            },
+            {
+              "id": "10",
+              "name": "direccion_institucion",
+              "value": "={{ $json.body.direccion_institucion }}",
+              "type": "string"
+            },
+            {
+              "id": "11",
+              "name": "estado",
+              "value": "solicitud_enviada",
+              "type": "string"
+            },
+            {
+              "id": "12",
+              "name": "fecha_registro",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set_datos",
+      "name": "Preparar Datos",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "1gUtbneApb8N25wlx19c2Srucma81i19QloihwjMmFzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "id",
+          "cachedResultName": "Estudiantes"
+        },
+        "options": {}
+      },
+      "id": "sheets_contar",
+      "name": "Contar Registros",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        680,
+        300
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google_sheets_account",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const datosEstudiante = $('Preparar Datos').item.json;\nconst registrosExistentes = $input.all();\nconst totalRegistros = registrosExistentes.length;\nconst siguienteNumero = totalRegistros + 1;\nconst numeroFormateado = siguienteNumero.toString().padStart(4, '0');\nconst ahora = new Date();\nconst dia = ahora.getDate().toString().padStart(2, '0');\nconst mes = (ahora.getMonth() + 1).toString().padStart(2, '0');\nconst anio = ahora.getFullYear().toString().slice(-2);\nconst fechaFormato = dia + mes + anio;\nconst id = fechaFormato + '-' + numeroFormateado;\nreturn [{\n  json: {\n    id: id,\n    ...datosEstudiante\n  }\n}];"
+      },
+      "id": "code_generar_id",
+      "name": "Generar ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1gUtbneApb8N25wlx19c2Srucma81i19QloihwjMmFzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "id",
+          "cachedResultName": "Estudiantes"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData"
+        },
+        "options": {}
+      },
+      "id": "sheets_estudiante",
+      "name": "Guardar Estudiante",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1120,
+        300
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google_sheets_account",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Generar ID').item.json.correo }}",
+        "subject": "Confirmación de Solicitud de Práctica",
+        "message": "Estimado/a {{ $('Generar ID').item.json.nombre_completo }},\n\nHemos recibido su solicitud de práctica.\n\nSu número de registro es: {{ $('Generar ID').item.json.id }}\nCarrera: {{ $('Generar ID').item.json.carrera }}\n\nSaludos,\nCoordinación de Prácticas",
+        "options": {}
+      },
+      "id": "gmail_estudiante",
+      "name": "Email Estudiante",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1340,
+        200
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail_account",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "coordinador@ejemplo.com",
+        "subject": "Nueva Solicitud de Práctica",
+        "message": "Nueva solicitud recibida:\n\nID: {{ $('Generar ID').item.json.id }}\nEstudiante: {{ $('Generar ID').item.json.nombre_completo }}\nCarrera: {{ $('Generar ID').item.json.carrera }}\nInstitución: {{ $('Generar ID').item.json.nombre_institucion }}",
+        "options": {}
+      },
+      "id": "gmail_coordinador",
+      "name": "Email Coordinador",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1340,
+        300
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail_account",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Generar ID').item.json.correo_institucion }}",
+        "subject": "Solicitud de Práctica Estudiantil",
+        "message": "Estimado/a {{ $('Generar ID').item.json.contacto_institucion }},\n\nEl estudiante {{ $('Generar ID').item.json.nombre_completo }} (ID: {{ $('Generar ID').item.json.id }}) ha solicitado realizar su práctica en su institución.\n\nSaludos,\nCoordinación de Prácticas",
+        "options": {}
+      },
+      "id": "gmail_institucion",
+      "name": "Email Institución",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1340,
+        400
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail_account",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "error_trigger",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "error_message",
+              "value": "={{ $json.error?.message || 'Error desconocido' }}",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "workflow_name",
+              "value": "={{ $workflow.name }}",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "execution_id",
+              "value": "={{ $execution.id }}",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "fecha_error",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "id": "set_error",
+      "name": "Preparar Error",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        460,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "coordinador@ejemplo.com",
+        "subject": "⚠️ Error en Sistema de Prácticas",
+        "message": "Se ha detectado un error:\n\nWorkflow: {{ $json.workflow_name }}\nError: {{ $json.error_message }}\nFecha: {{ $json.fecha_error }}\nExecution ID: {{ $json.execution_id }}",
+        "options": {}
+      },
+      "id": "gmail_error",
+      "name": "Enviar Email Error",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        680,
+        700
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail_account",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "reporte-diario",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook_reporte",
+      "name": "Webhook Reporte",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        1000
+      ],
+      "webhookId": "reporte-diario"
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "1gUtbneApb8N25wlx19c2Srucma81i19QloihwjMmFzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "id",
+          "cachedResultName": "Estudiantes"
+        },
+        "options": {}
+      },
+      "id": "sheets_leer_reporte",
+      "name": "Leer Estudiantes",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        460,
+        1000
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google_sheets_account",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst total = items.length;\nconst estados = {};\nitems.forEach(item => {\n  const estado = item.json.estado || 'sin_estado';\n  estados[estado] = (estados[estado] || 0) + 1;\n});\nreturn [{\n  json: {\n    total_estudiantes: total,\n    estados: estados,\n    fecha_reporte: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "code_reporte",
+      "name": "Generar Reporte",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        680,
+        1000
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "coordinador@ejemplo.com",
+        "subject": "📊 Reporte Diario de Prácticas",
+        "message": "Reporte del día:\n\nTotal de estudiantes: {{ $json.total_estudiantes }}\n\nEstados:\n{{ JSON.stringify($json.estados, null, 2) }}\n\nFecha: {{ $json.fecha_reporte }}",
+        "options": {}
+      },
+      "id": "gmail_reporte",
+      "name": "Enviar Reporte",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        900,
+        1000
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail_account",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "buscar-estudiante",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook_buscar",
+      "name": "Webhook Buscar",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        1300
+      ],
+      "webhookId": "buscar-estudiante"
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "1gUtbneApb8N25wlx19c2Srucma81i19QloihwjMmFzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "id",
+          "cachedResultName": "Estudiantes"
+        },
+        "options": {}
+      },
+      "id": "sheets_leer_buscar",
+      "name": "Leer Todos",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        460,
+        1300
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google_sheets_account",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const idBuscado = $('Webhook Buscar').item.json.query.id;\nconst items = $input.all();\nconst encontrado = items.find(item => item.json.id === idBuscado);\n\nif (encontrado) {\n  return [{\n    json: {\n      encontrado: true,\n      estudiante: encontrado.json\n    }\n  }];\n} else {\n  return [{\n    json: {\n      encontrado: false,\n      mensaje: 'Estudiante no encontrado con ID: ' + idBuscado\n    }\n  }];\n}"
+      },
+      "id": "code_buscar",
+      "name": "Buscar por ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        680,
+        1300
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "conteo-carreras",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook_carreras",
+      "name": "Webhook Carreras",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        1600
+      ],
+      "webhookId": "conteo-carreras"
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "1gUtbneApb8N25wlx19c2Srucma81i19QloihwjMmFzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "id",
+          "cachedResultName": "Estudiantes"
+        },
+        "options": {}
+      },
+      "id": "sheets_leer_carreras",
+      "name": "Leer Estudiantes Carreras",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        460,
+        1600
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google_sheets_account",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst total = items.length;\nconst carreras = {};\n\n// Contar por carrera\nitems.forEach(item => {\n  const carrera = item.json.carrera || 'Sin carrera';\n  if (!carreras[carrera]) {\n    carreras[carrera] = {\n      cantidad: 0,\n      estudiantes: []\n    };\n  }\n  carreras[carrera].cantidad++;\n  carreras[carrera].estudiantes.push({\n    id: item.json.id,\n    nombre: item.json.nombre_completo,\n    estado: item.json.estado\n  });\n});\n\n// Ordenar por cantidad (mayor a menor)\nconst carrerasOrdenadas = Object.entries(carreras)\n  .sort((a, b) => b[1].cantidad - a[1].cantidad)\n  .reduce((obj, [key, value]) => {\n    obj[key] = value;\n    return obj;\n  }, {});\n\nreturn [{\n  json: {\n    total_estudiantes: total,\n    total_carreras: Object.keys(carreras).length,\n    carreras: carrerasOrdenadas,\n    fecha_consulta: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "code_contar_carreras",
+      "name": "Contar por Carrera",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        680,
+        1600
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "recordatorio-pendientes",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook_recordatorio",
+      "name": "Webhook Recordatorio",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        1900
+      ],
+      "webhookId": "recordatorio-pendientes"
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "1gUtbneApb8N25wlx19c2Srucma81i19QloihwjMmFzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "id",
+          "cachedResultName": "Estudiantes"
+        },
+        "options": {}
+      },
+      "id": "sheets_leer_pendientes",
+      "name": "Leer Pendientes",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        460,
+        1900
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google_sheets_account",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst ahora = new Date();\nconst DIAS_LIMITE = 7;\nconst pendientes = [];\n\nitems.forEach(item => {\n  if (item.json.estado === 'solicitud_enviada') {\n    const fechaRegistro = new Date(item.json.fecha_registro);\n    const diasTranscurridos = Math.floor((ahora - fechaRegistro) / (1000 * 60 * 60 * 24));\n    \n    if (diasTranscurridos >= DIAS_LIMITE) {\n      pendientes.push({\n        id: item.json.id,\n        nombre: item.json.nombre_completo,\n        carrera: item.json.carrera,\n        institucion: item.json.nombre_institucion,\n        dias_pendiente: diasTranscurridos,\n        fecha_registro: item.json.fecha_registro\n      });\n    }\n  }\n});\n\n// Ordenar por días pendientes (mayor a menor)\npendientes.sort((a, b) => b.dias_pendiente - a.dias_pendiente);\n\nreturn [{\n  json: {\n    total_pendientes: pendientes.length,\n    estudiantes: pendientes,\n    fecha_consulta: ahora.toISOString()\n  }\n}];"
+      },
+      "id": "code_filtrar_pendientes",
+      "name": "Filtrar Pendientes",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        680,
+        1900
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "coordinador@ejemplo.com",
+        "subject": "⏰ Recordatorio: Prácticas Pendientes de Respuesta",
+        "message": "Hay {{ $json.total_pendientes }} estudiante(s) con solicitudes pendientes de más de 7 días:\n\n{{ $json.estudiantes.map(e => `- ${e.nombre} (${e.id}) - ${e.carrera} - ${e.dias_pendiente} días pendiente`).join('\\n') }}\n\nFecha de consulta: {{ $json.fecha_consulta }}",
+        "options": {}
+      },
+      "id": "gmail_recordatorio",
+      "name": "Enviar Recordatorio",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        900,
+        1900
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail_account",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "estadisticas-instituciones",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook_instituciones",
+      "name": "Webhook Instituciones",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        2200
+      ],
+      "webhookId": "estadisticas-instituciones"
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "1gUtbneApb8N25wlx19c2Srucma81i19QloihwjMmFzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "id",
+          "cachedResultName": "Estudiantes"
+        },
+        "options": {}
+      },
+      "id": "sheets_leer_instituciones",
+      "name": "Leer Instituciones",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        460,
+        2200
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google_sheets_account",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst instituciones = {};\n\nitems.forEach(item => {\n  const inst = item.json.nombre_institucion || 'Sin institución';\n  if (!instituciones[inst]) {\n    instituciones[inst] = {\n      cantidad: 0,\n      estudiantes: []\n    };\n  }\n  instituciones[inst].cantidad++;\n  instituciones[inst].estudiantes.push({\n    id: item.json.id,\n    nombre: item.json.nombre_completo,\n    carrera: item.json.carrera,\n    estado: item.json.estado\n  });\n});\n\n// Ordenar por cantidad\nconst institucionesOrdenadas = Object.entries(instituciones)\n  .sort((a, b) => b[1].cantidad - a[1].cantidad)\n  .reduce((obj, [key, value]) => {\n    obj[key] = value;\n    return obj;\n  }, {});\n\nreturn [{\n  json: {\n    total_estudiantes: items.length,\n    total_instituciones: Object.keys(instituciones).length,\n    instituciones: institucionesOrdenadas,\n    fecha_consulta: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "code_contar_instituciones",
+      "name": "Contar Instituciones",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        680,
+        2200
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "1gUtbneApb8N25wlx19c2Srucma81i19QloihwjMmFzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "id",
+          "cachedResultName": "Estudiantes"
+        },
+        "options": {}
+      },
+      "id": "sheets_validar_email",
+      "name": "Validar Email",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        540,
+        300
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google_sheets_account",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const emailNuevo = $('Preparar Datos').item.json.correo;\nconst registrosExistentes = $input.all();\n\nconst emailDuplicado = registrosExistentes.find(item => \n  item.json.correo && item.json.correo.toLowerCase() === emailNuevo.toLowerCase()\n);\n\nif (emailDuplicado) {\n  return [{\n    json: {\n      duplicado: true,\n      email: emailNuevo,\n      estudiante_existente: {\n        id: emailDuplicado.json.id,\n        nombre: emailDuplicado.json.nombre_completo\n      }\n    }\n  }];\n} else {\n  return [{\n    json: {\n      duplicado: false,\n      email: emailNuevo,\n      datos: $('Preparar Datos').item.json\n    }\n  }];\n}"
+      },
+      "id": "code_verificar_email",
+      "name": "Verificar Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        620,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.duplicado }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "if_duplicado",
+      "name": "¿Email Duplicado?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        700,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email }}",
+        "subject": "⚠️ Email ya registrado",
+        "message": "El email {{ $json.email }} ya está registrado en el sistema.\n\nEstudiante existente:\n- ID: {{ $json.estudiante_existente.id }}\n- Nombre: {{ $json.estudiante_existente.nombre }}\n\nSi crees que esto es un error, contacta al coordinador.",
+        "options": {}
+      },
+      "id": "gmail_email_duplicado",
+      "name": "Notificar Duplicado",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        820,
+        200
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail_account",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "exportar-csv",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook_exportar",
+      "name": "Webhook Exportar",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        2500
+      ],
+      "webhookId": "exportar-csv"
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "1gUtbneApb8N25wlx19c2Srucma81i19QloihwjMmFzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "id",
+          "cachedResultName": "Estudiantes"
+        },
+        "options": {}
+      },
+      "id": "sheets_leer_exportar",
+      "name": "Leer para Exportar",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        460,
+        2500
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google_sheets_account",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// Crear encabezados CSV\nconst headers = ['ID', 'Nombre Completo', 'Correo', 'Teléfono', 'Carrera', 'Periodo', 'Institución', 'Estado', 'Fecha Registro'];\nlet csv = headers.join(',') + '\\n';\n\n// Agregar datos\nitems.forEach(item => {\n  const row = [\n    item.json.id || '',\n    `\"${(item.json.nombre_completo || '').replace(/\"/g, '\"\"')}\"`,\n    item.json.correo || '',\n    item.json.telefono || '',\n    `\"${(item.json.carrera || '').replace(/\"/g, '\"\"')}\"`,\n    item.json.periodo_practica || '',\n    `\"${(item.json.nombre_institucion || '').replace(/\"/g, '\"\"')}\"`,\n    item.json.estado || '',\n    item.json.fecha_registro || ''\n  ];\n  csv += row.join(',') + '\\n';\n});\n\nreturn [{\n  json: {\n    csv_content: csv,\n    total_registros: items.length,\n    fecha_exportacion: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "code_generar_csv",
+      "name": "Generar CSV",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        680,
+        2500
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "coordinador@ejemplo.com",
+        "subject": "📊 Exportación de Estudiantes (CSV)",
+        "message": "Exportación completada.\n\nTotal de registros: {{ $json.total_registros }}\nFecha: {{ $json.fecha_exportacion }}\n\nEl archivo CSV está adjunto.",
+        "options": {
+          "attachments": "data:text/csv;base64,{{ $json.csv_content | base64encode }}"
+        }
+      },
+      "id": "gmail_enviar_csv",
+      "name": "Enviar CSV",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        900,
+        2500
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail_account",
+          "name": "Gmail account 2"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Solicitud": {
+      "main": [
+        [
+          {
+            "node": "Preparar Datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Datos": {
+      "main": [
+        [
+          {
+            "node": "Validar Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contar Registros": {
+      "main": [
+        [
+          {
+            "node": "Generar ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generar ID": {
+      "main": [
+        [
+          {
+            "node": "Guardar Estudiante",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar Estudiante": {
+      "main": [
+        [
+          {
+            "node": "Email Estudiante",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Email Coordinador",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Email Institución",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Preparar Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Error": {
+      "main": [
+        [
+          {
+            "node": "Enviar Email Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Reporte": {
+      "main": [
+        [
+          {
+            "node": "Leer Estudiantes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Estudiantes": {
+      "main": [
+        [
+          {
+            "node": "Generar Reporte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generar Reporte": {
+      "main": [
+        [
+          {
+            "node": "Enviar Reporte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Buscar": {
+      "main": [
+        [
+          {
+            "node": "Leer Todos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Todos": {
+      "main": [
+        [
+          {
+            "node": "Buscar por ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Carreras": {
+      "main": [
+        [
+          {
+            "node": "Leer Estudiantes Carreras",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Estudiantes Carreras": {
+      "main": [
+        [
+          {
+            "node": "Contar por Carrera",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Recordatorio": {
+      "main": [
+        [
+          {
+            "node": "Leer Pendientes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Pendientes": {
+      "main": [
+        [
+          {
+            "node": "Filtrar Pendientes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtrar Pendientes": {
+      "main": [
+        [
+          {
+            "node": "Enviar Recordatorio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Instituciones": {
+      "main": [
+        [
+          {
+            "node": "Leer Instituciones",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Instituciones": {
+      "main": [
+        [
+          {
+            "node": "Contar Instituciones",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar Email": {
+      "main": [
+        [
+          {
+            "node": "Verificar Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar Email": {
+      "main": [
+        [
+          {
+            "node": "¿Email Duplicado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Email Duplicado?": {
+      "main": [
+        [
+          {
+            "node": "Notificar Duplicado",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Contar Registros",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Exportar": {
+      "main": [
+        [
+          {
+            "node": "Leer para Exportar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer para Exportar": {
+      "main": [
+        [
+          {
+            "node": "Generar CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generar CSV": {
+      "main": [
+        [
+          {
+            "node": "Enviar CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 7,
+  "updatedAt": "2025-11-11T20:36:07.308364",
+  "versionId": "workflow_9hu_completo_v1"
+}
