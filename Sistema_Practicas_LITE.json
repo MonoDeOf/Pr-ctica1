@@ -1,0 +1,207 @@
+{
+  "name": "Sistema Practicas Community",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "solicitud-practica",
+        "method": "POST",
+        "responseMode": "onReceived"
+      },
+      "name": "Webhook Solicitud",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "solicitud-webhook"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "nombre_completo",
+              "value": "={{$json[\"body\"][\"nombre_completo\"]}}"
+            },
+            {
+              "name": "correo",
+              "value": "={{$json[\"body\"][\"correo\"]}}"
+            },
+            {
+              "name": "telefono",
+              "value": "={{$json[\"body\"][\"telefono\"]}}"
+            },
+            {
+              "name": "carrera",
+              "value": "={{$json[\"body\"][\"carrera\"]}}"
+            },
+            {
+              "name": "periodo_practica",
+              "value": "={{$json[\"body\"][\"periodo_practica\"]}}"
+            },
+            {
+              "name": "nombre_institucion",
+              "value": "={{$json[\"body\"][\"nombre_institucion\"]}}"
+            },
+            {
+              "name": "correo_institucion",
+              "value": "={{$json[\"body\"][\"correo_institucion\"]}}"
+            },
+            {
+              "name": "contacto_institucion",
+              "value": "={{$json[\"body\"][\"contacto_institucion\"]}}"
+            },
+            {
+              "name": "telefono_institucion",
+              "value": "={{$json[\"body\"][\"telefono_institucion\"]}}"
+            },
+            {
+              "name": "direccion_institucion",
+              "value": "={{$json[\"body\"][\"direccion_institucion\"]}}"
+            },
+            {
+              "name": "estado",
+              "value": "solicitud_enviada"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Preparar Datos",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "sheetId": "1gUtbneApb8N25wlx19c2Srucma81i19QloihwjMmFzg",
+        "range": "Estudiantes!A:Z",
+        "options": {
+          "valueInputMode": "USER_ENTERED"
+        }
+      },
+      "name": "Guardar Estudiante",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        680,
+        300
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{$json[\"correo\"]}}",
+        "subject": "Confirmación de Solicitud de Práctica",
+        "message": "=Hola {{$json[\"nombre_completo\"]}},\n\nHemos recibido tu solicitud de práctica profesional.\n\nCarrera: {{$json[\"carrera\"]}}\nPeríodo: {{$json[\"periodo_practica\"]}}\nInstitución: {{$json[\"nombre_institucion\"]}}\n\nTe notificaremos cuando la institución responda.\n\nSaludos,\nCoordinación"
+      },
+      "name": "Email Estudiante",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 1,
+      "position": [
+        900,
+        200
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "jorgeignaciocastillomiranda@gmail.com",
+        "subject": "Nueva Solicitud de Práctica",
+        "message": "=Nueva solicitud:\n\nEstudiante: {{$json[\"nombre_completo\"]}}\nCorreo: {{$json[\"correo\"]}}\nCarrera: {{$json[\"carrera\"]}}\nInstitución: {{$json[\"nombre_institucion\"]}}\nContacto: {{$json[\"contacto_institucion\"]}}"
+      },
+      "name": "Email Coordinador",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 1,
+      "position": [
+        900,
+        300
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{$json[\"correo_institucion\"]}}",
+        "subject": "Solicitud de Práctica Profesional",
+        "message": "=Estimado/a {{$json[\"contacto_institucion\"]}},\n\nSolicitamos su colaboración para que el/la estudiante {{$json[\"nombre_completo\"]}} realice su práctica profesional.\n\nDatos:\n- Nombre: {{$json[\"nombre_completo\"]}}\n- Correo: {{$json[\"correo\"]}}\n- Teléfono: {{$json[\"telefono\"]}}\n- Carrera: {{$json[\"carrera\"]}}\n\nPor favor, responda indicando si ACEPTA o RECHAZA.\n\nGracias,\nCoordinación"
+      },
+      "name": "Email Institución",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 1,
+      "position": [
+        900,
+        400
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "name": "Gmail account 2"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Solicitud": {
+      "main": [
+        [
+          {
+            "node": "Preparar Datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Datos": {
+      "main": [
+        [
+          {
+            "node": "Guardar Estudiante",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar Estudiante": {
+      "main": [
+        [
+          {
+            "node": "Email Estudiante",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Email Coordinador",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Email Institución",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "id": "sistema_practicas_community"
+}
