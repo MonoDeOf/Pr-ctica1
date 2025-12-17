@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gesti&oacute;n de Pr&aacute;cticas (DoD Completo)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #3b82f6; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-slate-50 h-screen flex font-sans text-slate-800">
+
+    <div id="login-overlay" class="fixed inset-0 bg-slate-100 z-50 flex items-center justify-center fade-in">
+        <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-sm border border-slate-200 text-center">
+            <div class="mb-4 inline-block p-3 bg-blue-100 rounded-full text-blue-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+            </div>
+            <h2 class="text-2xl font-bold text-slate-800 mb-2">Acceso Coordinador</h2>
+            <p class="text-sm text-slate-500 mb-6">Ingrese credenciales para ver el panel de gesti&oacute;n.</p>
+
+            <form onsubmit="handleLogin(event)" class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">Usuario</label>
+                    <input id="login-user" type="text" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">Contrase&ntilde;a</label>
+                    <input id="login-pass" type="password" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 ring-blue-500 outline-none">
+                </div>
+                <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 rounded-lg transition">
+                    Iniciar Sesi&oacute;n
+                </button>
+            </form>
+            
+            <div class="mt-6 pt-4 border-t border-slate-100">
+                <button onclick="skipLogin()" class="text-sm text-blue-500 hover:underline">
+                    Soy estudiante (Ir al Registro)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col shadow-2xl z-10">
+        <div class="p-6 border-b border-slate-800 flex items-center gap-3">
+            <div class="bg-blue-600 p-2 rounded-lg text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+            </div>
+            <div>
+                <h1 class="font-bold text-white leading-tight">Pr&aacute;cticas v2.0</h1>
+                <p class="text-xs text-slate-500">DoD Cumplido</p>
+            </div>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto py-6 px-3 space-y-1">
+            <p class="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Estudiantes</p>
+            
+            <button onclick="router('registro')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 transition text-sm text-white bg-slate-800">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+                Registro (HU1/HU7)
+            </button>
+
+            <div class="my-4 border-t border-slate-800"></div>
+            
+            <div id="coordinador-section" class="hidden">
+                <p class="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Coordinador</p>
+                
+                <button onclick="router('buscar')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 transition text-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    Buscar Estudiante (HU4)
+                </button>
+                
+                <button onclick="router('actualizar')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 transition text-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                    Actualizar Estado
+                </button>
+                
+                <button onclick="router('reportes')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 transition text-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    Reportes (HU3/5/6/9)
+                </button>
+
+                <div class="mt-4 pt-4 border-t border-slate-800">
+                    <button onclick="logout()" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-red-900/30 text-red-400 transition text-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                        Cerrar Sesi&oacute;n
+                    </button>
+                </div>
+            </div>
+            
+            <button id="btn-login-trigger" onclick="showLogin()" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 transition text-sm mt-4 text-blue-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+                Acceso Coordinador
+            </button>
+
+        </nav>
+        
+        <div class="p-4 bg-slate-950 text-xs text-center text-slate-500">
+            <p>Conectado a:</p>
+            <p class="font-mono text-blue-400">10.40.5.13</p>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col relative overflow-hidden">
+        
+        <div id="toast" class="absolute top-5 right-5 z-50 transition-all transform translate-x-full opacity-0 px-6 py-4 rounded-lg shadow-xl text-white font-medium flex items-center gap-3"></div>
+
+        <div class="flex-1 overflow-y-auto p-8 scroll-smooth" id="main-content">
+            
+            <section id="view-registro" class="view fade-in max-w-4xl mx-auto">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-6 border-b bg-slate-50 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-800">Solicitud de Pr&aacute;ctica</h2>
+                            <p class="text-sm text-slate-500">HU1: Registro + HU7: Validaci&oacute;n de Datos</p>
+                        </div>
+                        <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded border border-blue-400">Formulario P&uacute;blico</span>
+                    </div>
+                    
+                    <form id="form-registro" onsubmit="handleRegistro(event)" class="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="md:col-span-2 bg-yellow-50 p-3 rounded border border-yellow-200 text-sm text-yellow-800 mb-2">
+                            <strong>Nota de Validaci&oacute;n (HU7):</strong> Si el correo no contiene '@' o falta el nombre, el sistema rechazar&aacute; autom&aacute;ticamente el registro y no se guardar&aacute; en la base de datos.
+                        </div>
+
+                        <div class="md:col-span-2"><h3 class="text-sm font-bold text-blue-600 uppercase border-b pb-2">Datos del Estudiante</h3></div>
+                        
+                        <div><label class="block text-sm font-bold mb-1">Nombre Completo <span class="text-red-500">*</span></label><input name="nombre_completo" required class="w-full px-3 py-2 border rounded focus:ring-2 ring-blue-500 outline-none transition"></div>
+                        <div><label class="block text-sm font-bold mb-1">Correo Institucional <span class="text-red-500">*</span></label><input type="email" name="correo" required placeholder="ejemplo@universidad.cl" class="w-full px-3 py-2 border rounded focus:ring-2 ring-blue-500 outline-none transition"></div>
+                        <div><label class="block text-sm font-bold mb-1">Tel&eacute;fono</label><input name="telefono" required class="w-full px-3 py-2 border rounded focus:ring-2 ring-blue-500 outline-none transition"></div>
+                        <div>
+                            <label class="block text-sm font-bold mb-1">Carrera</label>
+                            <select name="carrera" class="w-full px-3 py-2 border rounded bg-white focus:ring-2 ring-blue-500 outline-none">
+                                <option>Ingenier&iacute;a Inform&aacute;tica</option>
+                                <option>Ingenier&iacute;a Industrial</option>
+                                <option>Ingenier&iacute;a Civil</option>
+                                <option>Psicolog&iacute;a</option>
+                                <option>Derecho</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2"><label class="block text-sm font-bold mb-1">Periodo Pr&aacute;ctica</label><input name="periodo_practica" required value="Verano 2026" class="w-full px-3 py-2 border rounded focus:ring-2 ring-blue-500 outline-none transition"></div>
+
+                        <div class="md:col-span-2 mt-4"><h3 class="text-sm font-bold text-green-600 uppercase border-b pb-2">Datos de la Instituci&oacute;n/Empresa</h3></div>
+                        
+                        <div><label class="block text-sm font-bold mb-1">Nombre Instituci&oacute;n</label><input name="nombre_institucion" required class="w-full px-3 py-2 border rounded focus:ring-2 ring-green-500 outline-none transition"></div>
+                        <div><label class="block text-sm font-bold mb-1">Correo Contacto</label><input type="email" name="correo_institucion" required class="w-full px-3 py-2 border rounded focus:ring-2 ring-green-500 outline-none transition"></div>
+                        <div><label class="block text-sm font-bold mb-1">Nombre Supervisor</label><input name="contacto_institucion" required class="w-full px-3 py-2 border rounded focus:ring-2 ring-green-500 outline-none transition"></div>
+                        <div><label class="block text-sm font-bold mb-1">Tel&eacute;fono Instituci&oacute;n</label><input name="telefono_institucion" required class="w-full px-3 py-2 border rounded focus:ring-2 ring-green-500 outline-none transition"></div>
+                        <div class="md:col-span-2"><label class="block text-sm font-bold mb-1">Direcci&oacute;n</label><input name="direccion_institucion" required class="w-full px-3 py-2 border rounded focus:ring-2 ring-green-500 outline-none transition"></div>
+
+                        <div class="md:col-span-2 pt-4">
+                            <button type="submit" id="btn-submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-lg hover:shadow-xl transition-all flex justify-center items-center gap-2 transform active:scale-95">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                                Registrar Solicitud
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <section id="view-buscar" class="view hidden fade-in max-w-5xl mx-auto">
+                <div class="bg-white p-8 rounded-xl shadow-sm mb-6 text-center border border-slate-200">
+                    <h2 class="text-2xl font-bold mb-2 text-slate-800">Buscar Estudiante (HU4)</h2>
+                    <p class="text-slate-500 mb-6">Consulte el estado actual de una solicitud mediante el ID &uacute;nico.</p>
+                    
+                    <div class="flex gap-2 max-w-xl mx-auto relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        </div>
+                        <input type="text" id="search-input" placeholder="Ingrese ID (Ej: 121225-0001)" class="flex-1 pl-10 px-4 py-3 border rounded-lg text-lg focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <button onclick="buscarEstudiante()" class="bg-slate-800 text-white px-6 rounded-lg font-bold hover:bg-slate-900 transition shadow-lg active:transform active:scale-95">
+                            Buscar
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="search-results" class="hidden max-w-xl mx-auto"></div>
+            </section>
+            
+            <section id="view-actualizar" class="view hidden fade-in max-w-4xl mx-auto">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-6 border-b bg-slate-50 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-800">Actualizar Estado</h2>
+                            <p class="text-sm text-slate-500">Modifica el estado en Sheets y notifica al alumno.</p>
+                        </div>
+                        <span class="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded border border-purple-400">Admin</span>
+                    </div>
+                    
+                    <form id="form-actualizar" onsubmit="handleActualizarEstado(event)" class="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        
+                        <div><label class="block text-sm font-bold mb-1">ID Estudiante</label><input name="id" required placeholder="Ej: 121225-0001" class="w-full px-3 py-2 border rounded focus:ring-2 ring-purple-500 outline-none"></div>
+                        
+                        <div>
+                            <label class="block text-sm font-bold mb-1">Nuevo Estado</label>
+                            <select name="estado" required class="w-full px-3 py-2 border rounded bg-white focus:ring-2 ring-purple-500 outline-none">
+                                <option value="Solicitud Recibida">Solicitud Recibida</option>
+                                <option value="Aprobada">Aprobada</option>
+                                <option value="Rechazada">Rechazada</option>
+                                <option value="En Curso">En Curso</option>
+                                <option value="Finalizada">Finalizada</option>
+                            </select>
+                        </div>
+
+                        <div class="md:col-span-2 pt-4">
+                            <button type="submit" id="btn-actualizar" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-lg shadow transition flex justify-center items-center gap-2 transform active:scale-95">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                Actualizar y Notificar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <section id="view-reportes" class="view hidden fade-in max-w-5xl mx-auto">
+                <h2 class="text-2xl font-bold mb-6 text-slate-800 border-b pb-4">Panel de Reportes y Estad&iacute;sticas</h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="p-2 bg-blue-100 rounded-lg text-blue-600">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-800">Reporte Diario (HU3)</h3>
+                        </div>
+                        <p class="text-sm text-slate-500 mb-4 h-10">Genera estad&iacute;sticas de hoy y las env&iacute;a al correo del coordinador.</p>
+                        <button onclick="generarReporteDiario()" id="btn-reporte-diario" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2 px-4 rounded transition border border-slate-300">
+                            Generar y Enviar Email
+                        </button>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="p-2 bg-red-100 rounded-lg text-red-600">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-800">Reporte por Estado (HU9)</h3>
+                        </div>
+                        <p class="text-sm text-slate-500 mb-4 h-10">Agrupa estudiantes por estado y env&iacute;a el detalle por correo.</p>
+                        <button onclick="generarReporteEstado()" id="btn-reporte-estado" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2 px-4 rounded transition border border-slate-300">
+                            Solicitar Reporte Email
+                        </button>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="p-2 bg-purple-100 rounded-lg text-purple-600">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-800">Estad&iacute;stica Carreras (HU5)</h3>
+                        </div>
+                        <button onclick="generarReporteCarreras()" id="btn-reporte-carreras" class="w-full bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold py-2 px-4 rounded transition border border-purple-200">
+                            Ver en Pantalla
+                        </button>
+                        <div id="reporte-carreras-resultado" class="mt-4 hidden animate-pulse"></div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="p-2 bg-orange-100 rounded-lg text-orange-600">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a2 2 0 012-2h2a2 2 0 012 2v5m-6 0h6"></path></svg>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-800">Estad&iacute;stica Instituciones (HU6)</h3>
+                        </div>
+                        <button onclick="generarReporteInstituciones()" id="btn-reporte-instituciones" class="w-full bg-orange-50 hover:bg-orange-100 text-orange-700 font-bold py-2 px-4 rounded transition border border-orange-200">
+                            Ver en Pantalla
+                        </button>
+                        <div id="reporte-instituciones-resultado" class="mt-4 hidden animate-pulse"></div>
+                    </div>
+                </div>
+
+                <div id="reporte-email-resultado" class="mt-6 hidden fade-in p-4 bg-green-50 text-green-800 rounded-lg border border-green-200 flex items-center gap-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <div>
+                        <p class="font-bold">Solicitud Procesada!</p>
+                        <p class="text-sm">El reporte ha sido generado y enviado al correo electr&oacute;nico del coordinador.</p>
+                    </div>
+                </div>
+
+            </section>
+        </div>
+    </main>
+
+    <script>
+        // CONFIGURACIN: Reemplaza con tu IP
+        const N8N_BASE_URL = 'http://10.40.5.13:5678'; 
+        
+        // --- UX UI Helper Functions ---
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.innerHTML = ''; // Clear prev content
+            
+            // Icon logic
+            let icon = '';
+            if(type === 'success') icon = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+            else icon = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+
+            toast.innerHTML = `${icon} <span>${message}</span>`;
+            toast.className = 'absolute top-5 right-5 z-50 transition-all transform translate-x-full opacity-0 px-6 py-4 rounded-lg shadow-xl text-white font-medium flex items-center gap-3';
+            
+            if (type === 'success') toast.classList.add('bg-green-600');
+            else toast.classList.add('bg-red-600');
+
+            setTimeout(() => { toast.classList.remove('translate-x-full', 'opacity-0'); toast.classList.add('translate-x-0', 'opacity-100'); }, 100);
+            setTimeout(() => { toast.classList.remove('translate-x-0', 'opacity-100'); toast.classList.add('translate-x-full', 'opacity-0'); }, 5000);
+        }
+
+        function toggleLoading(buttonId, isLoading, originalText = 'Enviar') {
+            const button = document.getElementById(buttonId);
+            if (!button) return;
+            button.disabled = isLoading;
+            if (isLoading) {
+                button.innerHTML = '<div class="loader mx-auto"></div>';
+            } else {
+                button.innerHTML = originalText;
+            }
+        }
+
+        function router(viewId) {
+            document.querySelectorAll('.view').forEach(view => view.classList.add('hidden'));
+            document.getElementById(`view-${viewId}`).classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('bg-slate-800', 'text-white');
+            });
+            
+            const activeBtn = document.querySelector(`[onclick="router('${viewId}')"]`);
+            if(activeBtn) activeBtn.classList.add('bg-slate-800', 'text-white');
+        }
+
+        // ============================================
+        // LGICA DE AUTENTICACIN
+        // ============================================
+        const CREDENTIALS = { user: 'usuario', pass: 'Unab.2025' };
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const user = document.getElementById('login-user').value;
+            const pass = document.getElementById('login-pass').value;
+
+            if (user === CREDENTIALS.user && pass === CREDENTIALS.pass) {
+                // Guardar sesin
+                localStorage.setItem('auth', 'true');
+                applyAuthState();
+                showToast('Bienvenido, Coordinador.', 'success');
+            } else {
+                showToast('Credenciales incorrectas.', 'error');
+            }
+        }
+
+        function skipLogin() {
+            // Cierra el overlay pero no da permisos de admin
+            document.getElementById('login-overlay').classList.add('hidden');
+            showToast('Modo Estudiante (Acceso limitado)', 'success');
+        }
+
+        function logout() {
+            localStorage.removeItem('auth');
+            applyAuthState();
+            router('registro');
+            showToast('Sesin cerrada.', 'success');
+        }
+
+        function showLogin() {
+            document.getElementById('login-overlay').classList.remove('hidden');
+        }
+
+        function applyAuthState() {
+            const isAuth = localStorage.getItem('auth') === 'true';
+            const overlay = document.getElementById('login-overlay');
+            const coordSection = document.getElementById('coordinador-section');
+            const btnLoginTrigger = document.getElementById('btn-login-trigger');
+
+            if (isAuth) {
+                overlay.classList.add('hidden');
+                coordSection.classList.remove('hidden');
+                btnLoginTrigger.classList.add('hidden');
+            } else {
+                // Si no est logueado, mostrar el overlay al inicio o permitir cerrarlo
+                // Aqu permitimos ver la app pero con men oculto
+                coordSection.classList.add('hidden');
+                btnLoginTrigger.classList.remove('hidden');
+            }
+        }
+
+        // ============================================
+        // LGICA DE N8N (INTACTA)
+        // ============================================
+
+        // --- HU1: Registro (con Validacin HU7 implcita) ---
+        async function handleRegistro(event) {
+            event.preventDefault();
+            const form = event.target;
+            const data = Object.fromEntries(new FormData(form).entries());
+            const btn = document.getElementById('btn-submit');
+            const originalText = btn.innerHTML;
+
+            toggleLoading('btn-submit', true);
+
+            try {
+                // n8n Webhook
+                const response = await fetch(`${N8N_BASE_URL}/webhook/solicitud-practica`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                // Si n8n responde 200, significa que pas las validaciones iniciales o complet el flujo
+                if (response.ok) {
+                    showToast('Solicitud registrada. Revisa tu correo.', 'success');
+                    form.reset();
+                } else {
+                    showToast('Error: Datos invlidos o servidor no disponible.', 'error');
+                }
+            } catch (error) {
+                showToast('Error de conexin con n8n.', 'error');
+            } finally {
+                toggleLoading('btn-submit', false, originalText);
+            }
+        }
+
+        // --- HU4: Buscar ---
+        async function buscarEstudiante() {
+            const id = document.getElementById('search-input').value.trim();
+            const resultsDiv = document.getElementById('search-results');
+            
+            if (!id) { showToast('Ingrese un ID.', 'error'); return; }
+
+            resultsDiv.classList.add('hidden');
+            resultsDiv.innerHTML = '<div class="text-center py-4"><div class="loader mx-auto border-slate-300 border-t-blue-600"></div></div>';
+            resultsDiv.classList.remove('hidden');
+
+            try {
+                const response = await fetch(`${N8N_BASE_URL}/webhook/buscar-estudiante?id=${id}`);
+                const result = await response.json();
+
+                if (result.encontrado) {
+                    const est = result.estudiante;
+                    // Mapeo de colores para estados
+                    let badgeColor = 'bg-gray-100 text-gray-800';
+                    if(est.estado === 'Aprobada') badgeColor = 'bg-green-100 text-green-800';
+                    if(est.estado === 'Rechazada') badgeColor = 'bg-red-100 text-red-800';
+
+                    resultsDiv.innerHTML = `
+                        <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-blue-600 animate-fade-in mt-4">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 class="text-xl font-bold text-slate-800">${est.nombre_completo}</h3>
+                                    <p class="text-sm text-slate-500">${est.carrera}</p>
+                                </div>
+                                <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${badgeColor}">${est.estado}</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div><p class="text-slate-400">ID Registro</p><p class="font-mono font-medium">${est.id}</p></div>
+                                <div><p class="text-slate-400">Institucin</p><p class="font-medium">${est.nombre_institucion}</p></div>
+                                <div><p class="text-slate-400">Contacto</p><p class="font-medium">${est.correo}</p></div>
+                                <div><p class="text-slate-400">Fecha</p><p class="font-medium">${est.fecha_registro.split('T')[0]}</p></div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="mt-4 p-4 bg-red-50 text-red-700 rounded-lg text-center border border-red-200">
+                            <strong>No encontrado</strong><br>El ID ${id} no existe en la base de datos.
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = '<p class="text-center text-red-500 mt-4">Error de conexin.</p>';
+            }
+        }
+
+        // --- HU7: Actualizar Estado ---
+        async function handleActualizarEstado(event) {
+            event.preventDefault();
+            const form = event.target;
+            const data = Object.fromEntries(new FormData(form).entries());
+            const btn = document.getElementById('btn-actualizar');
+            const originalText = btn.innerHTML;
+
+            toggleLoading('btn-actualizar', true);
+
+            try {
+                const response = await fetch(`${N8N_BASE_URL}/webhook/actualizar-estado`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                // Nota: El JSON de n8n devuelve la fila actualizada o un error.
+                // Como es 'Last Node', y el ltimo nodo es Gmail, asumimos xito si es 200.
+                if (response.ok) {
+                    showToast('Estado actualizado y correo enviado.', 'success');
+                    form.reset();
+                } else {
+                    showToast('Error al actualizar. Verifique el ID.', 'error');
+                }
+            } catch (error) {
+                showToast('Error de conexin.', 'error');
+            } finally {
+                toggleLoading('btn-actualizar', false, originalText);
+            }
+        }
+
+        // --- HU3 & HU9: Reportes por Email ---
+        // Estos ahora comparten lgica: Trigger -> n8n enva email -> UI confirma.
+        async function triggerEmailReport(endpoint, btnId) {
+            const btn = document.getElementById(btnId);
+            const originalText = btn.innerHTML;
+            const feedbackDiv = document.getElementById('reporte-email-resultado');
+            
+            feedbackDiv.classList.add('hidden');
+            toggleLoading(btnId, true);
+
+            try {
+                const response = await fetch(`${N8N_BASE_URL}/webhook/${endpoint}`, { method: 'GET' }); // HU3 es GET usualmente
+                
+                // Si el endpoint es POST en n8n, ajustar aqu. (En el JSON corregido HU3 es GET, HU9 es GET/POST)
+                // Vamos a intentar GET primero, si falla probar POST en tu implementacin si cambiaste algo.
+                
+                if (response.ok) {
+                    feedbackDiv.classList.remove('hidden');
+                    showToast('Reporte enviado correctamente.', 'success');
+                } else {
+                    showToast('Error al generar reporte.', 'error');
+                }
+            } catch (error) {
+                showToast('Error de conexin.', 'error');
+            } finally {
+                toggleLoading(btnId, false, originalText);
+            }
+        }
+
+        function generarReporteDiario() { triggerEmailReport('reporte-diario', 'btn-reporte-diario'); }
+        
+        // HU9 suele ser POST en algunos diseos, revisar n8n. Asumo GET/POST compatible.
+        async function generarReporteEstado() {
+             const btnId = 'btn-reporte-estado';
+             const btn = document.getElementById(btnId);
+             const originalText = btn.innerHTML;
+             const feedbackDiv = document.getElementById('reporte-email-resultado');
+             
+             feedbackDiv.classList.add('hidden');
+             toggleLoading(btnId, true);
+
+             try {
+                 const response = await fetch(`${N8N_BASE_URL}/webhook/reporte-por-estado`, { method: 'POST' }); // HU9 corregida usa POST trigger
+                 if (response.ok) {
+                     feedbackDiv.classList.remove('hidden');
+                     showToast('Reporte enviado correctamente.', 'success');
+                 } else { showToast('Error.', 'error'); }
+             } catch(e) { showToast('Error conexin.', 'error'); } 
+             finally { toggleLoading(btnId, false, originalText); }
+        }
+
+
+        // --- HU5 & HU6: Reportes en Pantalla ---
+        async function generarReporteVisual(endpoint, divId, btnId) {
+            const div = document.getElementById(divId);
+            const btn = document.getElementById(btnId);
+            const originalText = btn.innerHTML;
+            
+            div.classList.add('hidden');
+            div.classList.remove('animate-pulse');
+            div.innerHTML = '';
+            
+            toggleLoading(btnId, true);
+
+            try {
+                const response = await fetch(`${N8N_BASE_URL}/webhook/${endpoint}`);
+                const result = await response.json();
+                
+                let html = '<table class="min-w-full text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th class="px-6 py-3">Nombre</th><th class="px-6 py-3">Cantidad</th></tr></thead><tbody>';
+                
+                const dataObj = result.carreras || result.instituciones; // Detectar cul viene
+                
+                for (const key in dataObj) {
+                    html += `<tr class="bg-white border-b"><td class="px-6 py-4 font-medium text-gray-900">${key}</td><td class="px-6 py-4">${dataObj[key].cantidad}</td></tr>`;
+                }
+                html += '</tbody></table>';
+                
+                div.innerHTML = html;
+                div.classList.remove('hidden');
+
+            } catch (error) {
+                showToast('Error cargando datos.', 'error');
+            } finally {
+                toggleLoading(btnId, false, originalText);
+            }
+        }
+
+        function generarReporteCarreras() { generarReporteVisual('conteo-carreras', 'reporte-carreras-resultado', 'btn-reporte-carreras'); }
+        function generarReporteInstituciones() { generarReporteVisual('estadisticas-instituciones', 'reporte-instituciones-resultado', 'btn-reporte-instituciones'); }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            applyAuthState();
+            router('registro');
+        });
+    </script>
+</body>
+</html>

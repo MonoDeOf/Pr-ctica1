@@ -1,0 +1,1986 @@
+{
+  "name": "Sistema Prácticas - PROD (Final Finalizada Fix)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "solicitud-practica",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "855118d6-b287-431d-95b7-e90a0bf1967e",
+      "name": "Webhook Solicitud (HU1)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -3104,
+        256
+      ],
+      "webhookId": "solicitud-practica"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.body.correo }}",
+              "operation": "contains",
+              "value2": "@"
+            },
+            {
+              "value1": "={{ $json.body.nombre_completo }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "id": "bad4dcad-6fb1-4a2e-82fd-41038a4e3ba8",
+      "name": "IF Validar Datos (HU7)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -2880,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1gUtbneApb8N25wlx19c2Srucma81i19QloihwjMmFzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "id",
+          "cachedResultName": "Estudiantes"
+        },
+        "options": {}
+      },
+      "id": "6bf4bf47-f1a3-4f1a-a1d1-24686d82d1fd",
+      "name": "Leer Correos Existentes",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2656,
+        256
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "msdN4WapvcRFenWe",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const nuevoCorreo = $('Webhook Solicitud (HU1)').first().json.body.correo.trim().toLowerCase();\nconst items = $input.all();\n\n// Buscamos si existe algun registro con el mismo correo\nconst yaExiste = items.some(row => {\n  const correoExistente = (row.json.correo || '').toString().trim().toLowerCase();\n  return correoExistente === nuevoCorreo;\n});\n\nreturn [{\n  json: {\n    duplicado: yaExiste,\n    correo_analizado: nuevoCorreo\n  }\n}];"
+      },
+      "id": "ac1c6d7f-c7e2-4a34-99e4-cde4cc9a70cd",
+      "name": "Verificar Duplicado",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2448,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.duplicado }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "2fcfa95b-ef30-49ac-a7a8-3f0610dff316",
+      "name": "Es Duplicado?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -2224,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.correo_analizado }}",
+        "subject": "Aviso: Ya estás registrado en el sistema",
+        "message": "=Hola,<br><br>Hemos recibido una solicitud con el correo <b>{{ $json.correo_analizado }}</b>, pero detectamos que <b>ya te encuentras registrado</b> en nuestro sistema de prácticas.<br><br>No es necesario que te inscribas nuevamente. Tu proceso sigue activo.<br><br>Si crees que esto es un error, por favor contacta al coordinador.<br><br>Saludos cordiales,<br><i>Coordinación de Prácticas</i>",
+        "options": {}
+      },
+      "id": "7c483e56-879a-42c3-a088-868a38383213",
+      "name": "Email Ya Registrado",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -2000,
+        96
+      ],
+      "webhookId": "40e40ccc-51d2-4908-85c8-2b88a2294cd5",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2HoW7n32feN1Nadx",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "nombre_completo",
+              "value": "={{ $('Webhook Solicitud (HU1)').first().json.body.nombre_completo }}",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "correo",
+              "value": "={{ $('Webhook Solicitud (HU1)').first().json.body.correo }}",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "telefono",
+              "value": "={{ $('Webhook Solicitud (HU1)').first().json.body.telefono }}",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "carrera",
+              "value": "={{ $('Webhook Solicitud (HU1)').first().json.body.carrera }}",
+              "type": "string"
+            },
+            {
+              "id": "5",
+              "name": "periodo_practica",
+              "value": "={{ $('Webhook Solicitud (HU1)').first().json.body.periodo_practica }}",
+              "type": "string"
+            },
+            {
+              "id": "6",
+              "name": "nombre_institucion",
+              "value": "={{ $('Webhook Solicitud (HU1)').first().json.body.nombre_institucion }}",
+              "type": "string"
+            },
+            {
+              "id": "7",
+              "name": "correo_institucion",
+              "value": "={{ $('Webhook Solicitud (HU1)').first().json.body.correo_institucion }}",
+              "type": "string"
+            },
+            {
+              "id": "8",
+              "name": "contacto_institucion",
+              "value": "={{ $('Webhook Solicitud (HU1)').first().json.body.contacto_institucion }}",
+              "type": "string"
+            },
+            {
+              "id": "9",
+              "name": "telefono_institucion",
+              "value": "={{ $('Webhook Solicitud (HU1)').first().json.body.telefono_institucion }}",
+              "type": "string"
+            },
+            {
+              "id": "10",
+              "name": "direccion_institucion",
+              "value": "={{ $('Webhook Solicitud (HU1)').first().json.body.direccion_institucion }}",
+              "type": "string"
+            },
+            {
+              "id": "11",
+              "name": "estado",
+              "value": "solicitud_enviada",
+              "type": "string"
+            },
+            {
+              "id": "12",
+              "name": "fecha_registro",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7700778b-192c-4666-a361-fe76104b9a42",
+      "name": "Preparar Datos (HU1)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2000,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1gUtbneApb8N25wlx19c2Srucma81i19QloihwjMmFzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "id",
+          "cachedResultName": "Estudiantes"
+        },
+        "options": {}
+      },
+      "id": "dde65fee-02a1-4d2d-b14e-d7de2e2c5efb",
+      "name": "Contar Registros (HU1)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1776,
+        256
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "msdN4WapvcRFenWe",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const datosEstudiante = $('Preparar Datos (HU1)').item.json;\nconst registrosExistentes = $input.all();\nconst totalRegistros = registrosExistentes.length;\nconst siguienteNumero = totalRegistros + 1;\nconst numeroFormateado = siguienteNumero.toString().padStart(4, '0');\nconst ahora = new Date();\nconst dia = ahora.getDate().toString().padStart(2, '0');\nconst mes = (ahora.getMonth() + 1).toString().padStart(2, '0');\nconst anio = ahora.getFullYear().toString().slice(-2);\nconst fechaFormato = dia + mes + anio;\nconst id = fechaFormato + '-' + numeroFormateado;\nreturn [{\n  json: {\n    id: id,\n    ...datosEstudiante\n  }\n}];"
+      },
+      "id": "d2912292-d9fd-4aed-bfb5-1550e277c887",
+      "name": "Generar ID (HU1)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1568,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1gUtbneApb8N25wlx19c2Srucma81i19QloihwjMmFzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "id",
+          "cachedResultName": "Estudiantes"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData"
+        },
+        "options": {}
+      },
+      "id": "cb75f811-da6d-4ffa-9931-9255ecb23eb8",
+      "name": "Guardar Estudiante (HU1)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1344,
+        256
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "msdN4WapvcRFenWe",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "value": "1djMnOcbL7tye16HugSZgNezxFd2xrNDL3xiP9d-qKx8",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "a759631d-07c4-450a-b041-ebe7ef9c9a38",
+      "name": "Copiar Plantilla",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -1120,
+        256
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "dLWWq8at19FVPtNL",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $('Copiar Plantilla').first().json.id }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "replaceAll",
+              "text": "{{NOMBRE_COMPLETO}}",
+              "replaceText": "={{ $('Generar ID (HU1)').first().json.nombre_completo }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{FECHA_REGISTRO}}",
+              "replaceText": "={{ $('Generar ID (HU1)').first().json.fecha_registro }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{ID_SOLICITUD}}",
+              "replaceText": "={{ $('Generar ID (HU1)').first().json.id }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{CARRERA}}",
+              "replaceText": "={{ $('Generar ID (HU1)').first().json.carrera }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{INSTITUCION}}",
+              "replaceText": "={{ $('Generar ID (HU1)').first().json.nombre_institucion }}"
+            }
+          ]
+        }
+      },
+      "id": "15b368db-bd66-4968-b79b-0be5e494ceca",
+      "name": "Rellenar Datos PDF",
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        -896,
+        256
+      ],
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "D98p1P26P7G76lMN",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 5,
+        "unit": "seconds"
+      },
+      "id": "9ee7d26a-69ed-4443-a55d-bb6b6b8b9850",
+      "name": "Esperar 5s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        -688,
+        256
+      ],
+      "webhookId": "c3f8dad3-d41c-4c6f-8c80-ec42eea92316"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Copiar Plantilla').first().json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "434a094f-e8de-4408-a62e-0ab67392ffa8",
+      "name": "Descargar PDF",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -464,
+        256
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "dLWWq8at19FVPtNL",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Generar ID (HU1)').first().json.correo }}",
+        "subject": "Confirmación de Solicitud de Práctica",
+        "message": "=Estimado/a <b>{{ $('Generar ID (HU1)').first().json.nombre_completo }}</b>,<br><br>Hemos recibido su solicitud de práctica correctamente.<br><br><b>Detalles del Registro:</b><br>• <b>ID de Solicitud:</b> {{ $('Generar ID (HU1)').first().json.id }}<br>• <b>Carrera:</b> {{ $('Generar ID (HU1)').first().json.carrera }}<br><br>Adjunto encontrará su comprobante oficial de solicitud.<br><br>Saludos cordiales,<br><i>Coordinación de Prácticas</i>",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {}
+            ]
+          }
+        }
+      },
+      "id": "20280e0f-a101-47f4-adca-0f2dc3d59c43",
+      "name": "Email Estudiante (HU1)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -240,
+        48
+      ],
+      "webhookId": "956f50c8-fb45-4582-ad45-bace67dff317",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2HoW7n32feN1Nadx",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook Solicitud (HU1)').first().json.body.email_coordinador || 'jorgeignaciocastillomiranda@gmail.com' }}",
+        "subject": "Nueva Solicitud de Práctica",
+        "message": "=<h3>Nueva Solicitud Recibida</h3><b>ID:</b> {{ $('Generar ID (HU1)').first().json.id }}<br><b>Estudiante:</b> {{ $('Generar ID (HU1)').first().json.nombre_completo }}<br><b>Carrera:</b> {{ $('Generar ID (HU1)').first().json.carrera }}<br><b>Institución:</b> {{ $('Generar ID (HU1)').first().json.nombre_institucion }}<br><br>Se adjunta el formulario oficial en PDF.",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {}
+            ]
+          }
+        }
+      },
+      "id": "3120cfe0-7cbb-439d-9f39-b28b2613cd68",
+      "name": "Email Coordinador (HU1)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -240,
+        256
+      ],
+      "webhookId": "379ac9e2-be75-49c7-a74e-f922cdda597d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2HoW7n32feN1Nadx",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Generar ID (HU1)').first().json.correo_institucion }}",
+        "subject": "Solicitud de Práctica Estudiantil",
+        "message": "=Estimado/a <b>{{ $('Generar ID (HU1)').first().json.contacto_institucion }}</b>,<br><br>Le informamos que el estudiante <b>{{ $('Generar ID (HU1)').first().json.nombre_completo }}</b> (ID: {{ $('Generar ID (HU1)').first().json.id }}) ha registrado una solicitud para realizar su práctica profesional en su institución.<br><br>Adjuntamos la carta de presentación formal.<br><br>Saludos cordiales,<br><i>Coordinación de Prácticas</i>",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {}
+            ]
+          }
+        }
+      },
+      "id": "0f5ba607-c661-48d3-bee6-ae9aa5e03824",
+      "name": "Email Institución (HU1)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -240,
+        448
+      ],
+      "webhookId": "c1f85585-6f4f-4bbe-91df-a8fbb587fd7c",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2HoW7n32feN1Nadx",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1gUtbneApb8N25wlx19c2Srucma81i19QloihwjMmFzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Historial",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "fecha": "={{ $now.toISO() }}",
+            "destinatario": "={{ $('Generar ID (HU1)').first().json.correo }}",
+            "tipo_mensaje": "Confirmación Registro"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "fecha",
+              "displayName": "fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "destinatario",
+              "displayName": "destinatario",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "tipo_mensaje",
+              "displayName": "tipo_mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "20e14981-3754-4b02-b12c-9f750fd593f5",
+      "name": "Guardar Log (HU8)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -16,
+        48
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "msdN4WapvcRFenWe",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "54c759b0-69af-4021-b29b-4ce0930d8360",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -2672,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "error_message",
+              "value": "={{ $json.error?.message || 'Error desconocido' }}",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "workflow_name",
+              "value": "={{ $workflow.name }}",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "execution_id",
+              "value": "={{ $execution.id }}",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "fecha_error",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "85afa1f3-9081-41c6-b792-b673e91c619c",
+      "name": "Preparar Error",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2448,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "coordinador@ejemplo.com",
+        "subject": "⚠️ Error en Sistema de Prácticas",
+        "message": "=⚠️ <b>Alerta de Error</b><br><br><b>Workflow:</b> {{ $json.workflow_name }}<br><b>Error:</b> {{ $json.error_message }}<br><b>Fecha:</b> {{ $json.fecha_error }}<br><b>Execution ID:</b> {{ $json.execution_id }}",
+        "options": {}
+      },
+      "id": "b9d4b383-0c0f-47e9-a7c1-c0c078cdfb90",
+      "name": "Enviar Email Error",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -2240,
+        640
+      ],
+      "webhookId": "15617382-9a15-4fdf-8619-e6bdc63545c7",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2HoW7n32feN1Nadx",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "path": "reporte-diario",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "9cbc063d-71a3-4b1f-8594-e63b35693c97",
+      "name": "Webhook Reporte (HU3)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2704,
+        992
+      ],
+      "webhookId": "reporte-diario"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1gUtbneApb8N25wlx19c2Srucma81i19QloihwjMmFzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "id",
+          "cachedResultName": "Estudiantes"
+        },
+        "options": {}
+      },
+      "id": "eb6c7e91-5627-47b5-97ef-510cab69e7ce",
+      "name": "Leer Estudiantes (HU3)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2480,
+        992
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "msdN4WapvcRFenWe",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst ahora = new Date();\n\n// Filtramos los registros de hoy\nconst registrosHoy = items.filter(item => {\n  // 1. Buscamos la fecha en cualquiera de las dos columnas posibles\n  const fechaDato = item.json.fecha_registro || item.json.fecha_solicitud;\n  \n  if (!fechaDato) return false; // Si no hay fecha, ignorar\n\n  // 2. Convertimos el texto a Objeto Fecha\n  const fechaRegistro = new Date(fechaDato);\n\n  // 3. Comparamos Día, Mes y Año con la fecha actual del sistema\n  // Esto asegura que contemos lo que ocurrió el \"mismo día calendario\"\n  return fechaRegistro.getDate() === ahora.getDate() &&\n         fechaRegistro.getMonth() === ahora.getMonth() &&\n         fechaRegistro.getFullYear() === ahora.getFullYear();\n});\n\n// Contamos los estados\nconst estados = {};\nregistrosHoy.forEach(item => {\n  const estado = item.json.estado || 'desconocido';\n  estados[estado] = (estados[estado] || 0) + 1;\n});\n\nreturn [{\n  json: {\n    total_estudiantes: registrosHoy.length,\n    estados: estados,\n    fecha_reporte: ahora.toISOString().split('T')[0] // Fecha formato YYYY-MM-DD\n  }\n}];"
+      },
+      "id": "665e5cc6-a100-43ae-87b4-3ab2ca602485",
+      "name": "Generar Reporte (HU3)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2272,
+        992
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "jorgeignaciocastillomiranda@gmail.com",
+        "subject": "Reporte Diario de Estudiantes",
+        "message": "=<h3>Reporte Diario: {{ $json.fecha_reporte }}</h3>\n<b>Total Estudiantes Registrados Hoy:</b> {{ $json.total_estudiantes }}<br><br>\n<b>Detalle por Estados:</b><br>\n<ul>\n{{ Object.keys($json.estados).map(key => '<li><b>' + key + ':</b> ' + $json.estados[key] + '</li>').join('') }}\n</ul>",
+        "options": {}
+      },
+      "id": "6bae7b81-8003-42eb-85df-7f36dd5818be",
+      "name": "Email Reporte (HU3)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -2064,
+        992
+      ],
+      "webhookId": "be7fefe8-a7c2-46b8-bb2d-d975ec4b88ca",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2HoW7n32feN1Nadx",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "path": "buscar-estudiante",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "201edde3-7efe-41a8-8a7c-48f4a10c5fdc",
+      "name": "Webhook Buscar (HU4)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2704,
+        1424
+      ],
+      "webhookId": "buscar-estudiante"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1gUtbneApb8N25wlx19c2Srucma81i19QloihwjMmFzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "id",
+          "cachedResultName": "Estudiantes"
+        },
+        "options": {}
+      },
+      "id": "9fb91dcb-12a5-4d34-9d1e-670caa076100",
+      "name": "Leer Todos (HU4)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2480,
+        1424
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "msdN4WapvcRFenWe",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const idBuscado = $node[\"Webhook Buscar (HU4)\"].json.query.id;\n\nconst estudiante = $input.all().find(item => item.json.id === idBuscado);\n\nif (estudiante) {\n  return [{\n    json: {\n      encontrado: true,\n      estudiante: estudiante.json\n    }\n  }];\n} else {\n  return [{\n    json: {\n      encontrado: false\n    }\n  }];\n}"
+      },
+      "id": "6c39ac16-7506-4663-aa7b-2e64d36948bd",
+      "name": "Buscar por ID (HU4)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2256,
+        1424
+      ]
+    },
+    {
+      "parameters": {
+        "path": "conteo-carreras",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "7ab08470-4095-4d9b-ac42-9576fb5f1aed",
+      "name": "Webhook Carreras (HU5)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2720,
+        1776
+      ],
+      "webhookId": "conteo-carreras"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1gUtbneApb8N25wlx19c2Srucma81i19QloihwjMmFzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "id",
+          "cachedResultName": "Estudiantes"
+        },
+        "options": {}
+      },
+      "id": "06c8399e-2b84-4f28-b7b4-f31290405988",
+      "name": "Leer Estudiantes Carreras (HU5)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2496,
+        1776
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "msdN4WapvcRFenWe",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst total = items.length;\nconst carreras = {};\n\n// Contar por carrera\nitems.forEach(item => {\n  const carrera = item.json.carrera || 'Sin carrera';\n  if (!carreras[carrera]) {\n    carreras[carrera] = {\n      cantidad: 0,\n      estudiantes: []\n    };\n  }\n  carreras[carrera].cantidad++;\n  carreras[carrera].estudiantes.push({\n    id: item.json.id,\n    nombre: item.json.nombre_completo,\n    estado: item.json.estado\n  });\n});\n\n// Ordenar por cantidad (mayor a menor)\nconst carrerasOrdenadas = Object.entries(carreras)\n  .sort((a, b) => b[1].cantidad - a[1].cantidad)\n  .reduce((obj, [key, value]) => {\n    obj[key] = value;\n    return obj;\n  }, {});\n\nreturn [{\n  json: {\n    total_estudiantes: total,\n    total_carreras: Object.keys(carreras).length,\n    carreras: carrerasOrdenadas,\n    fecha_consulta: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "f8cb0a90-8a0d-4a9e-9952-9c4ffc2c825f",
+      "name": "Contar por Carrera (HU5)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2272,
+        1776
+      ]
+    },
+    {
+      "parameters": {
+        "path": "estadisticas-instituciones",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "6efd587d-e85b-4827-afcf-893b40392d85",
+      "name": "Webhook Instituciones (HU6)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2752,
+        2160
+      ],
+      "webhookId": "estadisticas-instituciones"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1gUtbneApb8N25wlx19c2Srucma81i19QloihwjMmFzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "id",
+          "cachedResultName": "Estudiantes"
+        },
+        "options": {}
+      },
+      "id": "07a5e1a1-85b7-4bc4-af49-efdb545640f4",
+      "name": "Leer Instituciones (HU6)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2528,
+        2160
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "msdN4WapvcRFenWe",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst instituciones = {};\n\nitems.forEach(item => {\n  const inst = item.json.nombre_institucion || 'Sin institución';\n  if (!instituciones[inst]) {\n    instituciones[inst] = {\n      cantidad: 0,\n      estudiantes: []\n    };\n  }\n  instituciones[inst].cantidad++;\n  instituciones[inst].estudiantes.push({\n    id: item.json.id,\n    nombre: item.json.nombre_completo,\n    carrera: item.json.carrera,\n    estado: item.json.estado\n  });\n});\n\n// Ordenar por cantidad (mayor a menor)\nconst institucionesOrdenadas = Object.entries(instituciones)\n  .sort((a, b) => b[1].cantidad - a[1].cantidad)\n  .reduce((obj, [key, value]) => {\n    obj[key] = value;\n    return obj;\n  }, {});\n\nreturn [{\n  json: {\n    total_estudiantes: items.length,\n    total_instituciones: Object.keys(instituciones).length,\n    instituciones: institucionesOrdenadas,\n    fecha_consulta: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "87a47ed4-fd47-4489-b249-42da7feab97c",
+      "name": "Contar Instituciones (HU6)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2304,
+        2160
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "actualizar-estado",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "27371022-ede5-44a2-8721-57634e1c6fd2",
+      "name": "Webhook Actualizar Estado",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2752,
+        2480
+      ],
+      "webhookId": "actualizar-estado"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1gUtbneApb8N25wlx19c2Srucma81i19QloihwjMmFzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "id",
+          "cachedResultName": "Estudiantes"
+        },
+        "options": {}
+      },
+      "id": "ec2df137-fb96-4bdc-837d-8b50ae09f54b",
+      "name": "Buscar Fila (Admin)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2528,
+        2480
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "msdN4WapvcRFenWe",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const idBuscado = $node['Webhook Actualizar Estado'].json.body.id;\nconst nuevoEstado = $node['Webhook Actualizar Estado'].json.body.estado;\nconst items = $input.all();\nconst index = items.findIndex(item => item.json.id === idBuscado);\nconst ahora = $now.toISO(); // Fecha actual\n\nif (index !== -1) {\n  const rowNumber = index + 2; \n  const estudiante = items[index].json;\n  \n  // 1. INICIALIZAR: Tomamos los datos viejos por defecto para NO BORRARLOS\n  let resultado = {\n    row: rowNumber,\n    id: idBuscado,\n    estado: nuevoEstado,\n    correo: estudiante.correo,\n    nombre_completo: estudiante.nombre_completo,\n    fecha_aceptacion: estudiante.fecha_aceptacion, // Mantiene lo que había\n    fecha_inicio: estudiante.fecha_inicio,         // Mantiene lo que había\n    fecha_fin: estudiante.fecha_fin                // Mantiene lo que había\n  };\n\n  // --- LÓGICA DE FECHAS ---\n  const estadoNorm = nuevoEstado.toString().toLowerCase().trim();\n\n  // CASO A: Aprobada / Aceptada (Inicio de práctica)\n  if (estadoNorm.includes('aprob') || estadoNorm.includes('acept')) {\n    // Solo ponemos fecha si estaba vacía (para no sobrescribir una antigua)\n    if (!estudiante.fecha_aceptacion) {\n      resultado.fecha_aceptacion = ahora;\n      resultado.fecha_inicio = ahora; \n    }\n  }\n\n  // CASO B: Finalizada / Terminada (Fin exitoso)\n  if (estadoNorm.includes('final') || estadoNorm.includes('termin')) {\n    // Si no tiene fecha fin, se la ponemos hoy\n    if (!estudiante.fecha_fin) {\n      resultado.fecha_fin = ahora;\n    }\n  }\n\n  // CASO C: Rechazada (Fin forzoso)\n  if (estadoNorm.includes('rechaz')) {\n    if (!estudiante.fecha_fin) {\n      resultado.fecha_fin = ahora;\n    }\n  }\n\n  return [{\n    json: resultado\n  }];\n\n} else {\n  return [{\n    json: {\n      error: true,\n      mensaje: 'ID no encontrado'\n    }\n  }];\n}"
+      },
+      "id": "bc26b6d4-842e-42ba-a75d-6aff92e6b1d9",
+      "name": "Obtener Fila y Datos (Admin)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2304,
+        2480
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "ed29471c-a96d-4718-9c18-a00b586656a5",
+      "name": "IF ID Encontrado",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -2096,
+        2480
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1gUtbneApb8N25wlx19c2Srucma81i19QloihwjMmFzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "id",
+          "cachedResultName": "Estudiantes"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{ $json.row }}",
+            "estado": "={{ $json.estado }}",
+            "fecha_aceptacion": "={{ $json.fecha_aceptacion }}",
+            "fecha_inicio": "={{ $json.fecha_inicio }}",
+            "fecha_fin": "={{ $json.fecha_fin }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "nombre_completo",
+              "displayName": "nombre_completo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "correo",
+              "displayName": "correo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "telefono",
+              "displayName": "telefono",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "whatsapp",
+              "displayName": "whatsapp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "telegram_id",
+              "displayName": "telegram_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "carrera",
+              "displayName": "carrera",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "periodo_practica",
+              "displayName": "periodo_practica",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "institucion_id",
+              "displayName": "institucion_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "estado",
+              "displayName": "estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fecha_solicitud",
+              "displayName": "fecha_solicitud",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "fecha_aceptacion",
+              "displayName": "fecha_aceptacion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "fecha_inicio",
+              "displayName": "fecha_inicio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "fecha_fin",
+              "displayName": "fecha_fin",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "preferencia_notificacion",
+              "displayName": "preferencia_notificacion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ultimo_reporte",
+              "displayName": "ultimo_reporte",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "reportes_pendientes",
+              "displayName": "reportes_pendientes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "nombre_institucion",
+              "displayName": "nombre_institucion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "correo_institucion",
+              "displayName": "correo_institucion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "contacto_institucion",
+              "displayName": "contacto_institucion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "telefono_institucion",
+              "displayName": "telefono_institucion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "direccion_institucion",
+              "displayName": "direccion_institucion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "fecha_registro",
+              "displayName": "fecha_registro",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row",
+              "displayName": "row",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "316063c1-52c7-4698-b6f7-7be8837d7ae1",
+      "name": "Actualizar Estado (Admin)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1872,
+        2384
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "msdN4WapvcRFenWe",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Obtener Fila y Datos (Admin)').first().json.correo }}",
+        "subject": "Actualización de Estado de Práctica",
+        "message": "=Estimado/a <b>{{ $('Obtener Fila y Datos (Admin)').first().json.nombre_completo }}</b>,<br><br>\nLe informamos que el estado de su solicitud de práctica (ID: {{ $('Obtener Fila y Datos (Admin)').first().json.id }}) ha sido actualizado a:<br><br>\n<h3>👉 {{ $('Obtener Fila y Datos (Admin)').first().json.estado }}</h3><br>\nPor favor, revise la plataforma para más detalles.<br><br>\nSaludos cordiales,<br>\n<i>Coordinación de Prácticas</i>",
+        "options": {}
+      },
+      "id": "bd9892b9-7448-475d-b3a4-244aa7a773c0",
+      "name": "Email Estudiante Actualizado (Admin)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -1648,
+        2384
+      ],
+      "webhookId": "d6973f7d-df52-494c-a52e-d23cfddc926c",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2HoW7n32feN1Nadx",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "grupo7practicaunab@gmail.com",
+        "subject": "⚠️ Error al Actualizar Estado",
+        "message": "=⚠️ <b>Error de Actualización</b><br><br>No se pudo actualizar el estado para el <b>ID: {{ $json.id }}</b>.<br><b>Detalle:</b> {{ $json.error }}",
+        "options": {}
+      },
+      "id": "fce3a1bc-272a-4029-bda1-0b051ed9ba69",
+      "name": "Email Error (Admin)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -1872,
+        2576
+      ],
+      "webhookId": "6db0f9ae-1f6c-419e-bc40-31da54408ad7",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2HoW7n32feN1Nadx",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "reporte-por-estado",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "5a33cf0f-7500-49f8-bf60-b1ce779e925a",
+      "name": "Webhook Reporte por Estado",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2752,
+        2800
+      ],
+      "webhookId": "reporte-por-estado"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1gUtbneApb8N25wlx19c2Srucma81i19QloihwjMmFzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "id",
+          "cachedResultName": "Estudiantes"
+        },
+        "options": {}
+      },
+      "id": "c6ff1127-98ae-47b0-a21e-0b57532cd54d",
+      "name": "Leer Estudiantes (Reporte)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2528,
+        2800
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "msdN4WapvcRFenWe",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst estados = {};\n\n// 1. Agrupar estudiantes\nitems.forEach(item => {\n  const estado = item.json.estado || 'Sin Estado';\n  if (!estados[estado]) {\n    estados[estado] = { cantidad: 0, estudiantes: [] };\n  }\n  estados[estado].cantidad++;\n  estados[estado].estudiantes.push({\n    id: item.json.id,\n    nombre: item.json.nombre_completo,\n    carrera: item.json.carrera\n  });\n});\n\n// 2. Crear el HTML bonito\nlet html = `<h3>📊 Reporte Detallado de Estudiantes</h3>`;\nhtml += `<p><b>Total General:</b> ${items.length} estudiantes</p><hr>`;\n\nfor (const estado in estados) {\n  html += `<h4 style=\"color:#0056b3; margin-top:15px;\">📂 ${estado} (${estados[estado].cantidad})</h4><ul>`;\n  \n  estados[estado].estudiantes.forEach(est => {\n    html += `<li><b>${est.nombre}</b> (ID: ${est.id}) - <i>${est.carrera}</i></li>`;\n  });\n  \n  html += `</ul>`;\n}\n\nreturn [{ json: { reporte_html: html } }];"
+      },
+      "id": "96a960ca-5328-4b2b-896a-01662cae6190",
+      "name": "Generar Reporte Texto",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2304,
+        2800
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "grupo7practicaunab@gmail.com",
+        "subject": "Reporte de Estudiantes por Estado",
+        "message": "={{ $('Generar Reporte Texto').first().json.reporte_html }}",
+        "options": {}
+      },
+      "id": "dba39cb0-c45b-4019-9c81-e566b6161b05",
+      "name": "Email Reporte",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -2096,
+        2800
+      ],
+      "webhookId": "6944a2ee-f717-4444-99b1-95569ac1b6be",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2HoW7n32feN1Nadx",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * 1-5"
+            }
+          ]
+        }
+      },
+      "id": "792ebfb6-86bf-4ea6-a902-bff1dcd72e05",
+      "name": "Recordatorio Diario (HU9)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -2752,
+        3056
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "grupo7practicaunab@gmail.com",
+        "subject": "Recordatorio Diario",
+        "message": "=<b>Recordatorio Diario</b><br><br>Este es un mensaje automático para confirmar que el sistema de recordatorios está activo (9:00 AM, días hábiles).",
+        "options": {}
+      },
+      "id": "853f5c4b-3b1c-4f8d-b85d-c727030d3705",
+      "name": "Email Recordatorio (HU9)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -2448,
+        3056
+      ],
+      "webhookId": "ab2feef4-1c77-4669-98af-3ae8c9be0732",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2HoW7n32feN1Nadx",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Flujo principal para registro de estudiante y validación de de duplicados.",
+        "width": 400
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -3120,
+        64
+      ],
+      "id": "ab0c605b-1ef2-495d-8833-5a1c82e860ec",
+      "name": "Sticky Note",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "Envío de correos a coordinador, institución y estudiante para confirmar que la solicitud fue enviada."
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        -160
+      ],
+      "id": "e18ce996-8e5c-4a35-9b42-a46f6f147f82",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "Flujo que envía un correo al coordinador que un trigger del flujo no funcionó adecuadamente\n"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2688,
+        448
+      ],
+      "id": "635a18f5-f359-401b-bbfd-92861cc6535c",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "Genera un correo al coordinador que índica la cantidad de estudiantes registrados al día "
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2704,
+        800
+      ],
+      "id": "050de958-de56-46ea-adb8-e76ff7192e87",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "Permite buscar a un estudiante por su ID y muestra en pantalla su estado de práctica, correo, nombre y fecha de solicitud"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2704,
+        1232
+      ],
+      "id": "58e83525-a898-4b13-b0e0-34e13310dadf",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "Muestra en pantalla la cantidad de carreras que están inscritas en la BD  a una práctica"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2720,
+        1600
+      ],
+      "id": "124d084a-2d53-4c9d-a5ca-408a76d36017",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "Muestra en pantalla la cantidad de instituciones que están vinculadas a una práctica en la BD"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2720,
+        1968
+      ],
+      "id": "326138b2-5970-42b3-810b-2b1c1ec48cee",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "Permite al administrador actualizar el estado de la práctica de un alumno mediante su ID"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1440,
+        2416
+      ],
+      "id": "d15ae57f-d552-427a-8881-1a73cd9b7979",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "Le genera al coordinador la lista de alumnos registrados en la práctica y los agrupa según el Estado de la práctica en el que estén"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1616,
+        2784
+      ],
+      "id": "4beb7910-2e1a-45f7-aa46-67e534671bc1",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "content": "Le genera al coordinador un reporte diario de los alumnos inscritos a la práctica y sus estados.\n"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2192,
+        3088
+      ],
+      "id": "688b1899-4cde-4c8e-9281-e05a00e4e82a",
+      "name": "Sticky Note9"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook Solicitud (HU1)": {
+      "main": [
+        [
+          {
+            "node": "IF Validar Datos (HU7)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Validar Datos (HU7)": {
+      "main": [
+        [
+          {
+            "node": "Leer Correos Existentes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Correos Existentes": {
+      "main": [
+        [
+          {
+            "node": "Verificar Duplicado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar Duplicado": {
+      "main": [
+        [
+          {
+            "node": "Es Duplicado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Es Duplicado?": {
+      "main": [
+        [
+          {
+            "node": "Email Ya Registrado",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Preparar Datos (HU1)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Datos (HU1)": {
+      "main": [
+        [
+          {
+            "node": "Contar Registros (HU1)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contar Registros (HU1)": {
+      "main": [
+        [
+          {
+            "node": "Generar ID (HU1)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generar ID (HU1)": {
+      "main": [
+        [
+          {
+            "node": "Guardar Estudiante (HU1)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar Estudiante (HU1)": {
+      "main": [
+        [
+          {
+            "node": "Copiar Plantilla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Copiar Plantilla": {
+      "main": [
+        [
+          {
+            "node": "Rellenar Datos PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rellenar Datos PDF": {
+      "main": [
+        [
+          {
+            "node": "Esperar 5s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 5s": {
+      "main": [
+        [
+          {
+            "node": "Descargar PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Descargar PDF": {
+      "main": [
+        [
+          {
+            "node": "Email Estudiante (HU1)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Email Coordinador (HU1)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Email Institución (HU1)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Guardar Log (HU8)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Preparar Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Error": {
+      "main": [
+        [
+          {
+            "node": "Enviar Email Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Reporte (HU3)": {
+      "main": [
+        [
+          {
+            "node": "Leer Estudiantes (HU3)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Estudiantes (HU3)": {
+      "main": [
+        [
+          {
+            "node": "Generar Reporte (HU3)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generar Reporte (HU3)": {
+      "main": [
+        [
+          {
+            "node": "Email Reporte (HU3)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Buscar (HU4)": {
+      "main": [
+        [
+          {
+            "node": "Leer Todos (HU4)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Todos (HU4)": {
+      "main": [
+        [
+          {
+            "node": "Buscar por ID (HU4)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Carreras (HU5)": {
+      "main": [
+        [
+          {
+            "node": "Leer Estudiantes Carreras (HU5)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Estudiantes Carreras (HU5)": {
+      "main": [
+        [
+          {
+            "node": "Contar por Carrera (HU5)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Instituciones (HU6)": {
+      "main": [
+        [
+          {
+            "node": "Leer Instituciones (HU6)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Instituciones (HU6)": {
+      "main": [
+        [
+          {
+            "node": "Contar Instituciones (HU6)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Actualizar Estado": {
+      "main": [
+        [
+          {
+            "node": "Buscar Fila (Admin)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Fila (Admin)": {
+      "main": [
+        [
+          {
+            "node": "Obtener Fila y Datos (Admin)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener Fila y Datos (Admin)": {
+      "main": [
+        [
+          {
+            "node": "IF ID Encontrado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF ID Encontrado": {
+      "main": [
+        [
+          {
+            "node": "Actualizar Estado (Admin)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Email Error (Admin)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actualizar Estado (Admin)": {
+      "main": [
+        [
+          {
+            "node": "Email Estudiante Actualizado (Admin)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Reporte por Estado": {
+      "main": [
+        [
+          {
+            "node": "Leer Estudiantes (Reporte)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Estudiantes (Reporte)": {
+      "main": [
+        [
+          {
+            "node": "Generar Reporte Texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generar Reporte Texto": {
+      "main": [
+        [
+          {
+            "node": "Email Reporte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recordatorio Diario (HU9)": {
+      "main": [
+        [
+          {
+            "node": "Email Recordatorio (HU9)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Reporte": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "69713877-cd00-4fcb-a131-ddbb31414b3a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "cc1d6db68fa72b3816c88e40ae2282c177d957542ce877aeb208912945bd4e56"
+  },
+  "id": "6fvu0T7Fe8rBNb81",
+  "tags": []
+}
